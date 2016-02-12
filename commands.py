@@ -50,7 +50,7 @@ def cli(ctx, db, host, verbose):
 	# init connection
 	ctx.obj.connnect_db()
 	ctx.obj.verbose = verbose
-	
+
 
 @cli.command()
 @click.argument('version', required=False)
@@ -76,9 +76,6 @@ def clone(connector, version, dest):
 def diff(connector, version1, version2):
 	click.echo('diff')
 	# connector.cursor.excute()
-
-@cli.command()
-@click.argument()
 
 @cli.command()
 @pass_connector
