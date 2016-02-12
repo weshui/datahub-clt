@@ -1,6 +1,7 @@
 import click
 import yaml
 import psycopg2
+import sys
 
 # This is the main entry for the clt
 
@@ -9,12 +10,19 @@ class Connector(object):
 	def __init__(self):
 		self.verbose = False
 		self.config_path = 'config.yaml'
+		self.connect = None
+		self.cursor = None
+		self.currentDB = None
 		with open(self.config_path, 'r') as f:
 			self.config = yaml.load(f)
 
+	def connnect_db(self):
 		try:
+			if self.verbose:
+				click.echo('Trying connect to %s' % (self.config['db']))
 			self.connect = psycopg2.connect(database=self.config['db'])
 			self.cursor = self.connect.cursor()
+			self.currentDB = self.config['db']
 		except psycopg2.OperationalError as e:
 			click.echo(e, file=sys.stderr)
 			pass
@@ -36,10 +44,13 @@ pass_connector = click.make_pass_decorator(Connector)
 def cli(ctx, db, host, verbose):	
 	ctx.obj = Connector()
 	if db is not None:
-		ctx.obj.set_config('dbname', db)
+		ctx.obj.set_config('db', db)
 	if host is not None:
 		ctx.obj.set_config('host', host)
+	# init connection
+	ctx.obj.connnect_db()
 	ctx.obj.verbose = verbose
+	
 
 @cli.command()
 @click.argument('version', required=False)
@@ -49,7 +60,6 @@ def list(connector, version):
 		click.echo('list all version')
 	else:
 		click.echo('list %s' % version)
-
 
 @cli.command()
 @click.argument('version')
@@ -67,6 +77,8 @@ def diff(connector, version1, version2):
 	click.echo('diff')
 	# connector.cursor.excute()
 
+@cli.command()
+@click.argument()
 
 @cli.command()
 @pass_connector
